@@ -16,8 +16,8 @@ function onCtrlC () {
 config=$1  # qmix
 tag=$2
 units=${3:-10,5,20}   # adding 5 and 20 would be better
-clipping_range=${9:-0.1,0.05,0.15}
-lr=${10:-0.0007,0.0004,0.0001}
+clipping_range=0.1
+lr=0.0005
 maps=${8:-sc2_gen_protoss,sc2_gen_zerg,sc2_gen_terran}
 threads=${4:-18} # 2
 args=${5:-}    # ""

@@ -19,7 +19,7 @@ buffer_cpu_only: False # If true we won't keep all of the replay buffer in vram
 use_tensorboard: False # Log results to tensorboard
 use_wandb: True
 project: "smac_v2_runs"
-entity: "oxwhirl"
+entity: "kusi833"
 group: "ungrouped"
 save_model: False # Save the models to disk
 save_model_interval: 5000 # Save models after this many timesteps
