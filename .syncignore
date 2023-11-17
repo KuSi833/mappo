@@ -1,5 +1,9 @@
 #created by http://www.gitignore.io
 
+# Difference from .gitignore
+# StarCraftII/
+# 3rdparty
+
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
@@ -64,7 +68,7 @@ docs/_build/
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm
 
 ## Directory-based project format
-.idea/
+../.idea/
 # if you remove the above rule, at least ignore user-specific stuff:
 # .idea/workspace.xml
 # .idea/tasks.xml
@@ -101,13 +105,11 @@ results/
 pool/
 notebook/
 tb_logs/
-StarCraftII/
 profiler/
 *.out
-3rdparty/
 .DS_Store
 venv/
-3rdparty
 MUJOCO_LOG.txt
 __MACOSX/
 scripts/csf-sync/push-to-csf.sh
+.git

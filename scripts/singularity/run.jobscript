@@ -1,0 +1,10 @@
+#!/bin/bash
+#$ -cwd                      # Use the current working directory
+#$ -j y                      # Merge the standard out and standard error to one file
+#$ -o ../logs/output.txt     # Output file in the logs directory
+
+# Make sure that the run.sh script is executable
+chmod +x ./run.sh
+
+# Run the run.sh script
+./run.sh
