@@ -110,3 +110,4 @@ venv/
 3rdparty
 MUJOCO_LOG.txt
 __MACOSX/
+sync-to-csf.sh
