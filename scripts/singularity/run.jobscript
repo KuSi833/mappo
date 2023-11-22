@@ -1,10 +1,31 @@
-#!/bin/bash
+#!/bin/bash --login
 #$ -cwd                      # Use the current working directory
 #$ -j y                      # Merge the standard out and standard error to one file
-#$ -o ../logs/output.txt     # Output file in the logs directory
+#$ -l v100
+
+echo "Loading modules"
+module load libs/cuda
+module load apps/gcc/apptainer/1.0.3
+
+echo "Job is using $NGPUS GPU(s) with ID(s) $CUDA_VISIBLE_DEVICES and $NSLOTS CPU core(s)"
+
+# Get the CUDA software libraries and applications
+# COMMAND DOESNT WORK FOR SOME REASON:
+
+# Variables
+ENVIRONMENT="$1"
+TAG="$2"
 
 # Make sure that the run.sh script is executable
-chmod +x ./run.sh
+#chmod +x ./run.sh
 
 # Run the run.sh script
-./run.sh
+export WANDB_API_KEY_FILE="/scratch/e14912km/projects/typ/WANDB_API_KEY"
+export SINGULARITY_IMAGE="docker://kusi833/pymarl:smacv2"
+export GROUP="fse-ugpgt01"
+
+#module load libs/cuda
+#module load apps/gcc/apptainer/1.0.3
+
+./run.sh "$ENVIRONMENT" "$TAG"
+
