@@ -9,6 +9,14 @@ RUN rm /etc/apt/sources.list.d/cuda.list && \
     apt-get update && \
     apt-get install -y git
 
+# Accept the UID from the build command
+ARG UID=1000
+
+# Create a user named pymarluser with the given UID
+RUN groupadd -r pymarlgroup && \
+    useradd -r -u $UID -g pymarlgroup --create-home pymarluser
+
+
 # Upgrade pip and install Python dependencies
 RUN pip install --upgrade pip && \
     pip install \
@@ -23,13 +31,6 @@ RUN pip install --upgrade pip && \
         ryd \
         wandb \
         pymongo
-
-# Accept the UID from the build command
-ARG UID=1000
-
-# Create a user named pymarluser with the given UID
-RUN groupadd -r pymarlgroup && \
-    useradd -r -u $UID -g pymarlgroup --create-home pymarluser
 
 # Switch to the non-root user
 USER pymarluser
