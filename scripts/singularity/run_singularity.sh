@@ -36,6 +36,6 @@ sg $GROUP -c "singularity run $NVIDIAFLAG \
     --env LC_ALL=C.UTF-8 \
     --bind $(pwd)/../../:/home/pymarluser/pymarl \
     --pwd /home/pymarluser/pymarl \
+    --contain \
     $SINGULARITY_IMAGE \
-    $(printf '%q ' "${@:2}")"
-#    ls -l src"
+    $(printf '%q ' "${@:1}")"

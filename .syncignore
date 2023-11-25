@@ -111,5 +111,4 @@ profiler/
 venv/
 MUJOCO_LOG.txt
 __MACOSX/
-scripts/csf-sync/push-to-csf.sh
 .git

@@ -9,44 +9,10 @@ RUN rm /etc/apt/sources.list.d/cuda.list && \
     apt-get update && \
     apt-get install -y git
 
-# Accept the UID from the build command
-ARG UID=1000
-
-# Create a user named pymarluser with the given UID
-RUN groupadd -r pymarlgroup && \
-    useradd -r -u $UID -g pymarlgroup --create-home pymarluser
-
-
 # Upgrade pip and install Python dependencies
+COPY requirements.txt requirements.txt
 RUN pip install --upgrade pip && \
-    pip install \
-        numpy \
-        scipy \
-        pyyaml \
-        matplotlib \
-        imageio \
-        pygame \
-        tensorboard-logger \
-        ruamel.base \
-        ryd \
-        wandb \
-        pymongo
-
-# Switch to the non-root user
-USER pymarluser
-WORKDIR /home/pymarluser
-
-# Create install dir
-RUN mkdir install && \
-    cd install
-
-# Install Sacred (from OxWhirl fork)
-RUN pip install \
-    jsonpickle==0.9.6 \
-    setuptools
-RUN git clone https://github.com/oxwhirl/sacred.git && \
-    cd sacred && \
-    python setup.py install --user
+    pip install -r requirements.txt
 
 # Install SMAC
 ENV smac_ver 1
@@ -58,6 +24,12 @@ RUN git clone https://github.com/koulanurag/ma-gym.git && \
     cd ma-gym && \
     pip install -e .
 
+# Create a user named pymarluser with the given UID
+ARG UID=1000
+RUN groupadd -r pymarlgroup && \
+    useradd -r -u $UID -g pymarlgroup --create-home pymarluser
+
 # Finalise
+USER pymarluser
 RUN mkdir /home/pymarluser/pymarl
 WORKDIR /home/pymarluser/pymarl

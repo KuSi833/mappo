@@ -1,0 +1,14 @@
+numpy
+scipy
+pyyaml
+matplotlib
+imageio
+pygame
+tensorboard-logger
+ruamel.base
+ryd
+wandb
+pymongo
+sacred
+jsonpickle==0.9.6
+setuptools
