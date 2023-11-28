@@ -3,7 +3,7 @@
 # File used to initiate an SGE queue job
 
 # Job name
-JOB_NAME="Echo4"
+JOB_NAME="more_CPU"
 
 # Timestamp format: YYYYMMDD-HHMMSS
 TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
@@ -15,4 +15,4 @@ OUTPUT_FILE="${OUTPUT_PATH}${JOB_NAME}-${TIMESTAMP}.txt"
 mkdir -p ${OUTPUT_PATH}
 
 # Submit the job to SGE
-qsub -N "$JOB_NAME" -o "$OUTPUT_FILE" run.jobscript clipping_rnn_central_V some_tag
+qsub -N "$JOB_NAME" -o "$OUTPUT_FILE" run.jobscript clipping_rnn_central_V "more_CPU"

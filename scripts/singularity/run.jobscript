@@ -1,31 +1,47 @@
 #!/bin/bash --login
-#$ -cwd                      # Use the current working directory
-#$ -j y                      # Merge the standard out and standard error to one file
-#$ -l v100
+#$ -cwd       # Use the current working directory
+#$ -j y       # Merge the standard out and standard error to one file
+#$ -l v100    # Tesla V100 GPU
+#$ -pe smp.pe 8      # 8 CPU cores available to the host code
 
+# Get the CUDA software libraries and applications
 echo "Loading modules"
 module load libs/cuda
 module load apps/gcc/apptainer/1.0.3
-
 echo "Job is using $NGPUS GPU(s) with ID(s) $CUDA_VISIBLE_DEVICES and $NSLOTS CPU core(s)"
 
-# Get the CUDA software libraries and applications
-# COMMAND DOESNT WORK FOR SOME REASON:
+# Use all CPUs
+export OMP_NUM_THREADS=$NSLOTS
 
 # Variables
 ENVIRONMENT="$1"
 TAG="$2"
 
-# Make sure that the run.sh script is executable
-#chmod +x ./run.sh
+# Copy files from scratch to the GPU node's local NVMe storage
+echo "Copying over files to localscratch"
+mkdir -p ~/localscratch/mappo
+cp -r ~/scratch/projects/typ/mappo/src ~/localscratch/mappo/
+cp -r ~/scratch/projects/typ/mappo/exp_tasks ~/localscratch/mappo/
+cp -r ~/scratch/projects/typ/mappo/scripts ~/localscratch/mappo/
+echo "Downloading SC2 files"
+cd ~/localscratch/mappo
+cp ~/scratch/projects/typ/mappo/install_sc2.sh ~/localscratch/mappo/
+./install_sc2.sh
+cp -r -v ~/scratch/projects/typ/mappo/3rdparty ~/localscratch/mappo/
 
 # Run the run.sh script
 export WANDB_API_KEY_FILE="/scratch/e14912km/projects/typ/WANDB_API_KEY"
 export SINGULARITY_IMAGE="docker://kusi833/pymarl:smacv2"
 export GROUP="fse-ugpgt01"
 
-#module load libs/cuda
-#module load apps/gcc/apptainer/1.0.3
-
+#echo "Running script"
+cd ~/localscratch/mappo/scripts/singularity
 ./run.sh "$ENVIRONMENT" "$TAG"
 
+# Copy the results back to the main scratch area
+echo "Copying over the logs and results"
+cp -r ~/localscratch/mappo/logs/ ~/scratch/projects/typ/mappo/logs/
+cp -r ~/localscratch/mappo/results/ ~/scratch/projects/typ/mappo/results/
+
+echo "Clearing up localscratch"
+#rm -rf ~/localscratch/mappo

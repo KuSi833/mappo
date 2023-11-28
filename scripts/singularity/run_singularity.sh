@@ -39,3 +39,18 @@ sg $GROUP -c "singularity run $NVIDIAFLAG \
     --contain \
     $SINGULARITY_IMAGE \
     $(printf '%q ' "${@:1}")"
+#    df -h"
+
+#sg $GROUP -c "singularity run $NVIDIAFLAG \
+#    --env WANDB_API_KEY=$WANDB_API_KEY \
+#    --env LANG=$APPTAINER_LANG \
+#    --env LC_ALL=C.UTF-8 \
+#    --bind ~/localscratch/mappo:/home/pymarluser/pymarl \
+#    --bind /scratch:/scratch \
+#    --bind /mnt:/mnt \
+#    --bind ~/localscratch/mappo/3rdparty/StarCraftII:/home/pymarluser/pymarl/3rdparty/StarCraftII \
+#    --pwd /home/pymarluser/pymarl \
+#    --contain \
+#    $SINGULARITY_IMAGE \
+#    $(printf '%q ' "${@:1}")"
+##    df -h"
