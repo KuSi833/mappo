@@ -8,6 +8,8 @@ import pprint
 import time
 import threading
 import torch as th
+import torch_xla
+import torch_xla.core.xla_model as xm
 from types import SimpleNamespace as SN
 from utils.logging import Logger
 from utils.timehelper import time_left, time_str
@@ -132,7 +134,8 @@ def run_sequential(args, logger):
         args.buffer_size,
         env_info["episode_limit"] + 1,
         preprocess=preprocess,
-        device="cpu" if args.buffer_cpu_only else args.device,
+        # device="cpu" if args.buffer_cpu_only else args.device,
+        device=xm.xla_device(),
     )
 
     # Setup multiagent controller here
