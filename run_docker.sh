@@ -10,7 +10,7 @@ echo "Launching container named '${name}' on GPU '${GPU}'"
 
 cmd=docker
 
-NV_GPU="$GPU" ${cmd} run --gpus device=$GPU \
+NV_GPU="$GPU" ${cmd} run \
     -e WANDB_API_KEY=$WANDB_API_KEY \
     -e LANG=C.UTF-8 \
     -e LC_ALL=C.UTF-8 \
