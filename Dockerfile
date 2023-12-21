@@ -1,5 +1,5 @@
 # Using PyTorch with CUDA support as the base image
-FROM pytorch/pytorch:1.11.0
+FROM gcr.io/tpu-pytorch/xla:r2.0_3.8_tpuvm
 
 RUN pip install cloud-tpu-client torch-xla
 
