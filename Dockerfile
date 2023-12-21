@@ -6,9 +6,7 @@ RUN pip install cloud-tpu-client torch-xla
 LABEL maintainer="Christian Schroeder de Witt"
 
 # Install system dependencies
-RUN rm /etc/apt/sources.list.d/cuda.list && \
-    rm /etc/apt/sources.list.d/nvidia-ml.list && \
-    apt-get update && \
+RUN apt-get update && \
     apt-get install -y git
 
 # Upgrade pip and install Python dependencies
