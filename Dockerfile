@@ -1,5 +1,7 @@
 # Using PyTorch with CUDA support as the base image
-FROM pytorch/pytorch:1.11.0-cuda11.3-cudnn8-devel
+FROM pytorch/pytorch:1.11.0
+
+RUN pip install cloud-tpu-client torch-xla
 
 LABEL maintainer="Christian Schroeder de Witt"
 
