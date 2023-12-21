@@ -17,7 +17,7 @@ NV_GPU="$GPU" ${cmd} run \
     --name $name \
     --user $(id -u) \
     --memory 100g \
-    -v $(pwd):/home/minsun/pymarl \
+    -v $(pwd):/home/pymarluser/pymarl \
     -t pymarl:smacv2 \
     ls
 
