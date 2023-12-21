@@ -19,7 +19,7 @@ NV_GPU="$GPU" ${cmd} run \
     --memory 100g \
     -v $(pwd):/home/pymarluser/pymarl \
     -t pymarl:smacv2 \
-    ls
+    ${@:2}
 
 #NV_GPU="$GPU" ${cmd} run \
 #    -e WANDB_API_KEY=$WANDB_API_KEY \
