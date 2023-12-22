@@ -32,7 +32,8 @@ def run(_run, _config, _log, pymongo_client):
     _config = args_sanity_check(_config, _log)
 
     args = SN(**_config)
-    args.device = "cuda" if args.use_cuda else "cpu"
+    # args.device = "cuda" if args.use_cuda else "cpu"
+    args.device = "cpu"
     args.tag = generate_tag(args.name, args.env_args["map_name"])
     # setup loggers
     logger = Logger(_log)
@@ -134,8 +135,8 @@ def run_sequential(args, logger):
         args.buffer_size,
         env_info["episode_limit"] + 1,
         preprocess=preprocess,
-        # device="cpu" if args.buffer_cpu_only else args.device,
-        device=xm.xla_device(),
+        device="cpu" if args.buffer_cpu_only else args.device,
+        # device=xm.xla_device(),
     )
 
     # Setup multiagent controller here
