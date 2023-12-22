@@ -1,8 +1,6 @@
 # Using PyTorch with CUDA support as the base image
 FROM gcr.io/tpu-pytorch/xla:r2.0_3.8_tpuvm
 
-RUN pip install cloud-tpu-client torch-xla
-
 LABEL maintainer="Christian Schroeder de Witt"
 
 # Install system dependencies
