@@ -15,4 +15,4 @@ OUTPUT_FILE="${OUTPUT_PATH}${JOB_NAME}-${TIMESTAMP}.txt"
 mkdir -p ${OUTPUT_PATH}
 
 # Submit the job to SGE
-qsub -N "$JOB_NAME" -o "$OUTPUT_FILE" run.jobscript clipping_rnn_central_V some_tag
+qsub -N "$JOB_NAME" -o "$OUTPUT_FILE" run.jobscript clipping_rnn_central_V "$JOB_NAME"
