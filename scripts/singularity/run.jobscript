@@ -2,6 +2,7 @@
 #$ -cwd                      # Use the current working directory
 #$ -j y                      # Merge the standard out and standard error to one file
 #$ -l v100
+#$ -pe smp.pe 8
 
 echo "Loading modules"
 module load libs/cuda

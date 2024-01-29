@@ -3,7 +3,7 @@
 # File used to initiate an SGE queue job
 
 # Job name
-JOB_NAME="Echo4"
+JOB_NAME="MULTITHREADING"
 
 # Timestamp format: YYYYMMDD-HHMMSS
 TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
