@@ -63,8 +63,6 @@ def my_main(_run, _config, _log, env_args):
     # Setting the random seed throughout the modules
     np.random.seed(_config["seed"])
     th.manual_seed(_config["seed"])
-    th.set_num_threads(8)
-    print("Current number of threads:", th.get_num_threads())
     env_args['seed'] = _config["seed"]
 
     # run the framework
