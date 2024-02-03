@@ -12,22 +12,22 @@ if [ -z "$GROUP" ]; then
     exit 1
 fi
 
+GPU=$1
 HASH=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 4 | head -n 1)
 WANDB_API_KEY=$(cat $WANDB_API_KEY_FILE)
 name=${USER}_pymarl_${HASH}
 
 echo "Launching container named '${name}'"
+echo "Using CUDA device '${GPU}'"
 # Launches a Singularity container using our image, and runs the provided command
 
 # Set the environment variables for Singularity
 export APPTAINER_HOME="$HOME"
 export APPTAINER_LANG="$LANG"
 
-# Check if CUDA_VISIBLE_DEVICES is set for GPU jobs
-if [ -n "$CUDA_VISIBLE_DEVICES" ]; then
-   export APPTAINERENV_CUDA_VISIBLE_DEVICES="$CUDA_VISIBLE_DEVICES"
-   NVIDIAFLAG=--nv
-fi
+# set for GPU jobs
+export APPTAINERENV_CUDA_VISIBLE_DEVICES="${GPU}"
+NVIDIAFLAG=--nv
 
 # Run the Singularity container with the necessary bindings and environment variables
 sg $GROUP -c "singularity run $NVIDIAFLAG \
@@ -38,19 +38,4 @@ sg $GROUP -c "singularity run $NVIDIAFLAG \
     --pwd /home/pymarluser/pymarl \
     --contain \
     $SINGULARITY_IMAGE \
-    $(printf '%q ' "${@:1}")"
-#    df -h"
-
-#sg $GROUP -c "singularity run $NVIDIAFLAG \
-#    --env WANDB_API_KEY=$WANDB_API_KEY \
-#    --env LANG=$APPTAINER_LANG \
-#    --env LC_ALL=C.UTF-8 \
-#    --bind ~/localscratch/mappo:/home/pymarluser/pymarl \
-#    --bind /scratch:/scratch \
-#    --bind /mnt:/mnt \
-#    --bind ~/localscratch/mappo/3rdparty/StarCraftII:/home/pymarluser/pymarl/3rdparty/StarCraftII \
-#    --pwd /home/pymarluser/pymarl \
-#    --contain \
-#    $SINGULARITY_IMAGE \
-#    $(printf '%q ' "${@:1}")"
-##    df -h"
+    $(printf '%q ' "${@:2}")"

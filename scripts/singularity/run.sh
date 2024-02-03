@@ -20,9 +20,9 @@ clipping_range=0.1
 lr=0.0005
 offset=0
 maps=${8:-sc2_gen_protoss,sc2_gen_zerg,sc2_gen_terran,sc2_gen_protoss_open_loop,sc2_gen_terran_open_loop,sc2_gen_zerg_open_loop}
-threads=1 # 2
+gpus=${CUDA_VISIBLE_DEVICES}
+#processes=1
 args=${5:-}    # ""
-gpus=3    # 0,1,2
 times=1   # 5
 
 maps=(${maps//,/ })
@@ -31,6 +31,7 @@ args=(${args//,/ })
 units=(${units//,/ })
 lrs=(${lr//,/ })
 clipping_ranges=(${clipping_range//,/ })
+processes=${#gpus[@]}
 
 if [ ! $config ] || [ ! $tag ]; then
     echo "Please enter the correct command."
@@ -40,7 +41,7 @@ fi
 
 echo "CONFIG:" $config
 echo "MAP LIST:" ${maps[@]}
-echo "THREADS:" $threads
+echo "CONCURRENT PROCESSES:" ${processes}
 echo "ARGS:"  ${args[@]}
 echo "GPU LIST:" ${gpus[@]}
 echo "TIMES:" $times
@@ -56,10 +57,13 @@ for lr in "${lrs[@]}"; do
                     gpu=${gpus[$(($count % ${#gpus[@]}))]}
                     group="${config}-${tag}"
                     enemies=$(($unit + $offset))
-                    $debug ./run_singularity.sh python3 src/main.py --no-mongo --config="$config" --env-config="$map" with env_args.capability_config.n_units=$unit env_args.capability_config.n_enemies=$enemies group="$group" clip_range=$clipping_range lr_actor=$lr use_wandb=True save_model=True "${args[@]}" &
+                    echo "Running Experiment on map: " ${map}
+                    echo "Running on GPU " ${gpu}
+                    $debug ./run_singularity.sh $gpu python3 src/main.py --no-mongo --config="$config" --env-config="$map" with env_args.capability_config.n_units=$unit env_args.capability_config.n_enemies=$enemies group="$group" lr_actor=$lr use_wandb=True save_model=True "${args[@]}" &
+#                    $debug ./run_singularity.sh $gpu python3 src/main.py --no-mongo --config="$config" --env-config="$map" with env_args.capability_config.n_units=$unit env_args.capability_config.n_enemies=$enemies group="$group" clip_range=$clipping_range lr_actor=$lr use_wandb=True save_model=True "${args[@]}" &
 
                     count=$(($count + 1))     
-                    if [ $(($count % $threads)) -eq 0 ]; then
+                    if [ $(($count % $processes)) -eq 0 ]; then
                         wait
                     fi
                     # for random seeds
