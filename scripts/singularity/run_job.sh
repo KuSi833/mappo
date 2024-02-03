@@ -4,7 +4,7 @@
 
 # Job name
 JOB_NAME="IPPO-JPPO"
-TASK_NAME="iac_rnn"
+TASK_NAME="joint_learning"
 
 # Timestamp format: YYYYMMDD-HHMMSS
 TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
