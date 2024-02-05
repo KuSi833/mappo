@@ -3,7 +3,7 @@
 # File used to initiate an SGE queue job
 
 # Job name
-JOB_NAME="IPPO-JPPO"
+JOB_NAME="JPPO"
 TASK_NAME="joint_learning"
 
 # Timestamp format: YYYYMMDD-HHMMSS

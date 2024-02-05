@@ -377,7 +377,9 @@ class JointLearner:
 
     def save_models(self, path):
         self.mac.save_models(path)
-        th.save(self.mac.critic.state_dict(), "{}/critic.th".format(path))
+        if hasattr(self.mac, "critic"):
+            # TODO: temp fix because self.mac has no attribute critic
+            th.save(self.mac.critic.state_dict(), "{}/critic.th".format(path))
         th.save(self.optimiser_actor.state_dict(), "{}/opt_actor.th".format(path))
         th.save(self.optimiser_critic.state_dict(), "{}/opt_critic.th".format(path))
 
