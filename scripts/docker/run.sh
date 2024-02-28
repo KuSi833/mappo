@@ -20,7 +20,8 @@ clipping_range=0.1
 lr=0.0005
 offset=0
 # maps=${8:-sc2_gen_protoss,sc2_gen_zerg,sc2_gen_terran,sc2_gen_protoss_open_loop,sc2_gen_terran_open_loop,sc2_gen_zerg_open_loop}
-maps=${8:-sc2_gen_protoss,sc2_gen_zerg,sc2_gen_terran}
+# maps=${8:-sc2_gen_protoss,sc2_gen_zerg,sc2_gen_terran}
+maps=${8:-10m_vs_11m}
 threads=1 # 2
 args=${5:-}    # ""
 gpus=0    # 0,1,2
@@ -57,7 +58,9 @@ for lr in "${lrs[@]}"; do
                     gpu=${gpus[$(($count % ${#gpus[@]}))]}  
                     group="${config}-${tag}"
                     enemies=$(($unit + $offset))
-                    $debug ./run_docker.sh $gpu python3 src/main.py --no-mongo --config="$config" --env-config="$map" with env_args.capability_config.n_units=$unit env_args.capability_config.n_enemies=$enemies group="$group" clip_range=$clipping_range lr_actor=$lr use_wandb=True save_model=True "${args[@]}" &
+                    # $debug ./run_docker.sh $gpu python3 src/main.py --no-mongo --config="$config" --env-config="$map" with env_args.capability_config.n_units=$unit env_args.capability_config.n_enemies=$enemies group="$group" clip_range=$clipping_range lr_actor=$lr use_wandb=True save_model=True "${args[@]}" &
+
+                    $debug ./run_docker.sh $gpu python3 src/main.py --no-mongo --config="$config" --env-config="$map" with env_args.capability_config.n_units=$unit env_args.capability_config.n_enemies=$enemies group="$group" lr_actor=$lr use_wandb=True save_model=True "${args[@]}" &
 
                     count=$(($count + 1))     
                     if [ $(($count % $threads)) -eq 0 ]; then
