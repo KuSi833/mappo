@@ -9,9 +9,12 @@ from components.running_mean_std import RunningMeanStd
 
 
 def compute_logp_entropy(logits, actions, masks):
-    masked_logits = th.where(masks, logits, th.tensor(th.finfo(logits.dtype).min).to(logits.device))
+    masked_logits = th.where(
+        masks, logits,
+        th.tensor(th.finfo(logits.dtype).min).to(logits.device))
     # normalize logits
-    masked_logits = masked_logits - masked_logits.logsumexp(dim=-1, keepdim=True)
+    masked_logits = masked_logits - masked_logits.logsumexp(dim=-1,
+                                                            keepdim=True)
 
     probs = th.nn.functional.softmax(masked_logits, dim=-1)
     p_log_p = masked_logits * probs
@@ -21,13 +24,14 @@ def compute_logp_entropy(logits, actions, masks):
     logp = th.gather(masked_logits, dim=-1, index=actions)
 
     result = {
-        'logp' : th.squeeze(logp),
-        'entropy' : th.squeeze(entropy),
+        'logp': th.squeeze(logp),
+        'entropy': th.squeeze(entropy),
     }
     return result
 
 
 class JointLearner:
+
     def __init__(self, mac, scheme, logger, args):
         self.args = args
         self.n_agents = args.n_agents
@@ -40,24 +44,34 @@ class JointLearner:
 
         self.critic = critic_REGISTRY[self.args.critic](scheme, args)
         self.critic_params = list(self.critic.parameters())
-        self.optimiser_actor = Adam(params=self.agent_params, lr=args.lr_actor, eps=args.optim_eps)
-        self.optimiser_critic = Adam(params=self.critic_params, lr=args.lr_critic, eps=args.optim_eps)
+        self.optimiser_actor = Adam(params=self.agent_params,
+                                    lr=args.lr_actor,
+                                    eps=args.optim_eps)
+        self.optimiser_critic = Adam(params=self.critic_params,
+                                     lr=args.lr_critic,
+                                     eps=args.optim_eps)
 
         self.log_stats_t = -self.args.learner_log_interval - 1
 
         self.mini_epochs_actor = getattr(self.args, "mini_epochs_actor", 4)
         self.mini_epochs_critic = getattr(self.args, "mini_epochs_critic", 4)
-        self.advantage_calc_method = getattr(self.args, "advantage_calc_method", "GAE")
+        self.advantage_calc_method = getattr(self.args,
+                                             "advantage_calc_method", "GAE")
         self.agent_type = getattr(self.args, "agent", None)
 
-        self.is_obs_normalized = getattr(self.args, "is_observation_normalized", False)
-        self.is_value_normalized = getattr(self.args, "is_value_normalized", False)
+        self.is_obs_normalized = getattr(self.args,
+                                         "is_observation_normalized", False)
+        self.is_value_normalized = getattr(self.args, "is_value_normalized",
+                                           False)
         self.is_popart = getattr(self.args, "is_popart", False)
 
-        self.bootstrap_timeouts = getattr(self.args, "bootstrap_timeouts", False)
+        self.bootstrap_timeouts = getattr(self.args, "bootstrap_timeouts",
+                                          False)
 
         if (self.is_value_normalized and self.is_popart):
-            raise ValueError("Either `is_value_normalized` or `is_popart` is specified, but not both.")
+            raise ValueError(
+                "Either `is_value_normalized` or `is_popart` is specified, but not both."
+            )
 
         if self.is_value_normalized:
             # need to normalize value
@@ -83,7 +97,8 @@ class JointLearner:
             value_var = self.value_rms.var.unsqueeze(0)
             value_mean = value_mean.expand(bs, ts)
             value_var = value_var.expand(bs, ts)
-            normalized_returns = (returns - value_mean) / th.sqrt(value_var + 1e-6) * mask
+            normalized_returns = (returns - value_mean) / th.sqrt(value_var +
+                                                                  1e-6) * mask
 
         elif self.is_popart:
             # update popart
@@ -99,7 +114,8 @@ class JointLearner:
             value_var = self.value_rms.var.unsqueeze(0)
             value_mean = value_mean.expand(bs, ts)
             value_var = value_var.expand(bs, ts)
-            denormalized_values = values * th.sqrt(value_var + 1e-6) + value_mean
+            denormalized_values = values * th.sqrt(value_var +
+                                                   1e-6) + value_mean
 
         elif self.is_popart:
             denormalized_values = self.critic.v_out.denormalize(values)
@@ -123,7 +139,9 @@ class JointLearner:
         state_mean = state_mean.expand(bs, ts, -1)
         state_var = state_var.expand(bs, ts, -1)
         expanded_mask = mask.unsqueeze(-1).expand(-1, -1, state_mean.shape[-1])
-        batch.data.transition_data['state'][:, :] = (batch['state'][:, :] - state_mean) / th.sqrt(state_var + 1e-6) * expanded_mask
+        batch.data.transition_data['state'][:, :] = (
+            batch['state'][:, :] - state_mean) / th.sqrt(state_var +
+                                                         1e-6) * expanded_mask
 
     def normalize_obs(self, batch, alive_mask):
         bs, ts = batch.batch_size, batch.max_seq_length
@@ -133,10 +151,13 @@ class JointLearner:
         obs_mean = obs_mean.expand(bs, ts, self.n_agents, -1)
         obs_var = obs_var.expand(bs, ts, self.n_agents, -1)
 
-        expanded_alive_mask = alive_mask.unsqueeze(-1).expand(-1, -1, -1, obs_mean.shape[-1])
+        expanded_alive_mask = alive_mask.unsqueeze(-1).expand(
+            -1, -1, -1, obs_mean.shape[-1])
 
         # update obs directly in batch
-        batch.data.transition_data['obs'][:, :] = (batch['obs'][:, :] - obs_mean) / th.sqrt(obs_var + 1e-6 ) * expanded_alive_mask
+        batch.data.transition_data['obs'][:, :] = (
+            batch['obs'][:, :] -
+            obs_mean) / th.sqrt(obs_var + 1e-6) * expanded_alive_mask
 
     def train(self, batch: EpisodeBatch, t_env: int, episode_num: int):
         max_t = batch.max_seq_length
@@ -148,14 +169,16 @@ class JointLearner:
         terminated = batch["terminated"][:, :].float()
         timed_out = batch["timed_out"][:, :].float()
         mask = batch["filled"][:, :].float()
-        mask[:, 1:] = mask[:, 1:] * (1 - terminated[:, :-1]) # also mask if prior state terminated
-        if self.bootstrap_timeouts: 
+        mask[:, 1:] = mask[:, 1:] * (1 - terminated[:, :-1]
+                                     )  # also mask if prior state terminated
+        if self.bootstrap_timeouts:
             # Do not train on states that timeout, or else their value target will be calculated as terminal without bootstrap
-            # Note: The environment could still mess this up if it terminates itself at timeout without setting episode_limit=true 
+            # Note: The environment could still mess this up if it terminates itself at timeout without setting episode_limit=true
             mask = mask * (1 - timed_out)
             # make sure it is not the case you have a timeout out flag without terminated
             # in logical form: assert all(not (batch["timed_out"] and not batch["terminated"])):
-            assert th.all(1 - ((batch["timed_out"] * (1-batch["terminated"]))) )
+            assert th.all(1 - ((batch["timed_out"] *
+                                (1 - batch["terminated"]))))
         avail_actions = batch["avail_actions"][:, :]
 
         mask = mask.squeeze(dim=-1)
@@ -165,7 +188,8 @@ class JointLearner:
         ## get dead agents
         # no-op (valid only when dead)
         # https://github.com/oxwhirl/smac/blob/013cf27001024b4ce47f9506f2541eca0b247c95/smac/env/starcraft2/starcraft2.py#L499
-        alive_mask = ( (avail_actions[:, :, :, 0] != 1.0) * (th.sum(avail_actions, dim=-1) != 0.0) ).float()
+        alive_mask = ((avail_actions[:, :, :, 0] != 1.0) *
+                      (th.sum(avail_actions, dim=-1) != 0.0)).float()
         avail_actions = avail_actions.byte()
 
         if self.is_obs_normalized:
@@ -180,7 +204,7 @@ class JointLearner:
             old_action_logits = []
             self.mac.init_hidden(batch.batch_size)
             for t in range(max_t):
-                actor_outs = self.mac.forward(batch, t = t, test_mode=False)
+                actor_outs = self.mac.forward(batch, t=t, test_mode=False)
                 old_action_logits.append(actor_outs)
             old_action_logits = th.stack(old_action_logits, dim=1)
 
@@ -193,20 +217,29 @@ class JointLearner:
         #### TODO: If kept, this block of code should be abstracted into a function, since similar code used below: ####
         old_values_before = self.critic(batch).squeeze(dim=-1).detach()
         # append 0's for value of state after terminal state. (Simplifies operations below. Any value works, but 0 is safer.)
-        old_values_before = th.cat((old_values_before, th.zeros_like(old_values_before[:, 0:1, ...]),), dim=1) # extend trajectory by 1
-        old_values_before[:, 1:] = old_values_before[:, 1:] * (1 - terminated) # make sure 0 at end of trajectory, for safety
-        assert old_values_before.shape[1] == max_t+1, (old_values_before.shape, max_t)
-        
+        old_values_before = th.cat((
+            old_values_before,
+            th.zeros_like(old_values_before[:, 0:1, ...]),
+        ),
+                                   dim=1)  # extend trajectory by 1
+        old_values_before[:, 1:] = old_values_before[:, 1:] * (
+            1 - terminated)  # make sure 0 at end of trajectory, for safety
+        assert old_values_before.shape[1] == max_t + 1, (
+            old_values_before.shape, max_t)
+
         if self.is_value_normalized or self.is_popart:
             old_values_before = self.denormalize_value(old_values_before)
 
         rewards = rewards.squeeze(dim=-1)
 
         if self.advantage_calc_method == "GAE":
-            returns, _ = self._compute_returns_advs(old_values_before, rewards, terminated, timed_out,
-                                                    self.args.gamma, self.args.tau)
+            returns, _ = self._compute_returns_advs(old_values_before, rewards,
+                                                    terminated, timed_out,
+                                                    self.args.gamma,
+                                                    self.args.tau)
         elif self.advantage_calc_method == "TD":
-            returns = rewards + self.args.gamma * (1 - terminated) * old_values_before[:, 1:]
+            returns = rewards + self.args.gamma * (
+                1 - terminated) * old_values_before[:, 1:]
         else:
             raise NotImplementedError
         ######
@@ -219,7 +252,7 @@ class JointLearner:
         for _ in range(0, self.mini_epochs_critic):
             new_values = self.critic(batch).squeeze()
 
-            vf_loss = th.sum( (new_values - returns) ** 2 * mask) / mask.sum()
+            vf_loss = th.sum((new_values - returns)**2 * mask) / mask.sum()
             self.optimiser_critic.zero_grad()
             vf_loss.backward()
             self.optimiser_critic.step()
@@ -228,17 +261,26 @@ class JointLearner:
         #### TODO: If kept, this block of code should be abstracted into a function, since similar code used above: ####
         old_values_after = self.critic(batch).squeeze(dim=-1).detach()
         # append 0's for value of state after terminal state. (Simplifies operations below. Any value works, but 0 is safer.)
-        old_values_after = th.cat((old_values_after, th.zeros_like(old_values_after[:, 0:1, ...]),), dim=1) # extend trajectory by 1
-        old_values_after[:, 1:] = old_values_after[:, 1:] * (1 - terminated) # make sure 0 at end of trajectory, for safety
-        
+        old_values_after = th.cat((
+            old_values_after,
+            th.zeros_like(old_values_after[:, 0:1, ...]),
+        ),
+                                  dim=1)  # extend trajectory by 1
+        old_values_after[:, 1:] = old_values_after[:, 1:] * (
+            1 - terminated)  # make sure 0 at end of trajectory, for safety
+
         if self.is_value_normalized or self.is_popart:
             old_values_after = self.denormalize_value(old_values_after)
 
         if self.advantage_calc_method == "GAE":
-            _, advantages = self._compute_returns_advs(old_values_after, rewards, terminated, timed_out,
-                                                    self.args.gamma, self.args.tau)
+            _, advantages = self._compute_returns_advs(old_values_after,
+                                                       rewards, terminated,
+                                                       timed_out,
+                                                       self.args.gamma,
+                                                       self.args.tau)
         elif self.advantage_calc_method == "TD":
-            returns = rewards + self.args.gamma * (1 - terminated) * old_values_after[:, 1:]
+            returns = rewards + self.args.gamma * (
+                1 - terminated) * old_values_after[:, 1:]
             advantages = returns - old_values_after[:, :-1]
         else:
             raise NotImplementedError
@@ -254,18 +296,20 @@ class JointLearner:
             batch_mean = th.mean(valid_adv, dim=0)
             batch_var = th.var(valid_adv, dim=0)
 
-            advantages = (advantages - batch_mean) / th.sqrt(batch_var + 1e-6) * mask
+            advantages = (advantages - batch_mean) / th.sqrt(batch_var +
+                                                             1e-6) * mask
 
         # action prob
-        old_action_logits = old_action_logits.detach() # detached
-        old_meta_data = compute_logp_entropy(old_action_logits, actions, avail_actions)
+        old_action_logits = old_action_logits.detach()  # detached
+        old_meta_data = compute_logp_entropy(old_action_logits, actions,
+                                             avail_actions)
         old_log_pac = old_meta_data['logp']
 
         # joint probability
         central_old_log_pac = th.sum(old_log_pac, dim=-1)
 
-        approxkl_lst = [] 
-        entropy_lst = [] 
+        approxkl_lst = []
+        entropy_lst = []
         actor_loss_lst = []
 
         ## update the actor
@@ -274,7 +318,7 @@ class JointLearner:
                 action_logits = []
                 self.mac.init_hidden(batch.batch_size)
                 for t in range(max_t):
-                    actor_outs = self.mac.forward(batch, t = t, test_mode=False)
+                    actor_outs = self.mac.forward(batch, t=t, test_mode=False)
                     action_logits.append(actor_outs)
                 action_logits = th.stack(action_logits, dim=1)
 
@@ -284,7 +328,8 @@ class JointLearner:
             else:
                 raise NotImplementedError
 
-            meta_data = compute_logp_entropy(action_logits, actions, avail_actions)
+            meta_data = compute_logp_entropy(action_logits, actions,
+                                             avail_actions)
             log_pac = meta_data['logp']
 
             # joint probability
@@ -292,24 +337,31 @@ class JointLearner:
 
             ## TV divergence for all agents
             prob_diff = th.exp(log_pac) - th.exp(old_log_pac)
-            indepent_approxtv = th.max( 0.5 * th.abs(prob_diff).sum(dim=-1) ).detach()
-            joint_approxtv = th.max( ( 0.5 * th.abs(prob_diff).sum(dim=-1) ).sum(dim=-1) ).detach()
+            indepent_approxtv = th.max(0.5 *
+                                       th.abs(prob_diff).sum(dim=-1)).detach()
+            joint_approxtv = th.max(
+                (0.5 * th.abs(prob_diff).sum(dim=-1)).sum(dim=-1)).detach()
 
             with th.no_grad():
-                approxkl = 0.5 * th.sum((central_log_pac - central_old_log_pac)**2) / mask.sum()
+                approxkl = 0.5 * th.sum(
+                    (central_log_pac - central_old_log_pac)**2) / mask.sum()
                 approxkl_lst.append(approxkl)
 
-            entropy = th.sum(meta_data['entropy'] * alive_mask) / alive_mask.sum() # mask out dead agents
+            entropy = th.sum(
+                meta_data['entropy'] *
+                alive_mask) / alive_mask.sum()  # mask out dead agents
             entropy_lst.append(entropy)
 
-            prob_ratio = th.clamp(th.exp(central_log_pac - central_old_log_pac), 0.0, 16.0)
+            prob_ratio = th.clamp(
+                th.exp(central_log_pac - central_old_log_pac), 0.0, 16.0)
 
-            pg_loss_unclipped = - advantages * prob_ratio
-            pg_loss_clipped = - advantages * th.clamp(prob_ratio,
-                                                1 - self.args.ppo_policy_clip_param,
-                                                1 + self.args.ppo_policy_clip_param)
+            pg_loss_unclipped = -advantages * prob_ratio
+            pg_loss_clipped = -advantages * th.clamp(
+                prob_ratio, 1 - self.args.ppo_policy_clip_param,
+                1 + self.args.ppo_policy_clip_param)
 
-            pg_loss = th.max(pg_loss_unclipped, pg_loss_clipped).sum() / mask.sum()
+            pg_loss = th.max(pg_loss_unclipped,
+                             pg_loss_clipped).sum() / mask.sum()
 
             # Construct overall loss
             actor_loss = pg_loss - self.args.entropy_loss_coeff * entropy
@@ -321,29 +373,34 @@ class JointLearner:
 
         ratios = prob_ratio.detach().cpu().numpy()
         epsilon = np.abs(ratios - 1.0)
-        epsilon_sum = np.sum( np.amax(epsilon, axis=(0, 1)) )
+        epsilon_sum = np.sum(np.amax(epsilon, axis=(0, 1)))
         epsilon_max = np.max(epsilon)
 
         # log stuff
         critic_train_stats["rewards"].append(th.mean(rewards).item())
         critic_train_stats["returns"].append((th.mean(returns)).item())
-        critic_train_stats["independent_approx_TV"].append(indepent_approxtv.item())
+        critic_train_stats["independent_approx_TV"].append(
+            indepent_approxtv.item())
         critic_train_stats["joint_approx_TV"].append(joint_approxtv.item())
         critic_train_stats["epsilon_sum"].append(epsilon_sum)
         critic_train_stats["epsilon_max"].append(epsilon_max)
         critic_train_stats["ratios_max"].append(np.max(ratios))
         critic_train_stats["ratios_min"].append(np.min(ratios))
         critic_train_stats["ratios_mean"].append(np.mean(ratios))
-        critic_train_stats["entropy"].append(th.mean(th.tensor(entropy_lst)).item())
-        critic_train_stats["critic_loss"].append(th.mean(th.tensor(critic_loss_lst)).item())
-        critic_train_stats["actor_loss"].append(th.mean(th.tensor(actor_loss_lst)).item())
+        critic_train_stats["entropy"].append(
+            th.mean(th.tensor(entropy_lst)).item())
+        critic_train_stats["critic_loss"].append(
+            th.mean(th.tensor(critic_loss_lst)).item())
+        critic_train_stats["actor_loss"].append(
+            th.mean(th.tensor(actor_loss_lst)).item())
 
         if t_env - self.log_stats_t >= self.args.learner_log_interval:
-            for k,v in critic_train_stats.items():
+            for k, v in critic_train_stats.items():
                 self.logger.log_stat(k, np.mean(np.array(v)), t_env)
             self.log_stats_t = t_env
 
-    def _compute_returns_advs(self, _values, _rewards, _terminated, _timed_out, gamma, tau):
+    def _compute_returns_advs(self, _values, _rewards, _terminated, _timed_out,
+                              gamma, tau):
         returns = th.zeros_like(_rewards)
         advs = th.zeros_like(_rewards)
         lastgaelam = th.zeros_like(_rewards[:, 0])
@@ -353,17 +410,18 @@ class JointLearner:
 
         for t in reversed(range(ts)):
             nextnonterminal = 1.0 - _terminated[:, t]
-            nextvalues = _values[:, t+1]
+            nextvalues = _values[:, t + 1]
 
             reward_t = _rewards[:, t]
 
-            delta = reward_t + gamma * nextvalues * nextnonterminal  - _values[:, t]
+            delta = reward_t + gamma * nextvalues * nextnonterminal - _values[:,
+                                                                              t]
             lastgaelam = delta + gamma * tau * nextnonterminal * lastgaelam
             if self.bootstrap_timeouts:
                 # lastgaelam must be set to 0 for states that timeout so that prior state computes advs[:, t] = delta + 0
                 # Note that this will still calculate an invalid (0) return/adv in advs[:, t] for the states that timeout, but
                 #   this will be masked off anyway.
-                lastgaelam = bad_mask[:, t] * lastgaelam 
+                lastgaelam = bad_mask[:, t] * lastgaelam
             advs[:, t] = lastgaelam
 
         returns = advs + _values[:, :-1]
@@ -380,12 +438,16 @@ class JointLearner:
         if hasattr(self.mac, "critic"):
             # TODO: temp fix because self.mac has no attribute critic
             th.save(self.mac.critic.state_dict(), "{}/critic.th".format(path))
-        th.save(self.optimiser_actor.state_dict(), "{}/opt_actor.th".format(path))
-        th.save(self.optimiser_critic.state_dict(), "{}/opt_critic.th".format(path))
+        th.save(self.optimiser_actor.state_dict(),
+                "{}/opt_actor.th".format(path))
+        th.save(self.optimiser_critic.state_dict(),
+                "{}/opt_critic.th".format(path))
 
     def load_models(self, path):
         self.mac.load_models(path)
-        self.mac.critic.load_state_dict(th.load("{}/critic.th".format(path), map_location=lambda storage, loc: storage))
+        self.mac.critic.load_state_dict(
+            th.load("{}/critic.th".format(path),
+                    map_location=lambda storage, loc: storage))
         # Not quite right but I don't want to save target networks
         if hasattr(self, "target_critic"):
             self.target_critic.load_state_dict(self.critic.state_dict())
