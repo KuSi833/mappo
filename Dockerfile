@@ -16,7 +16,7 @@ RUN pip install --upgrade pip && \
 
 # Install SMAC
 ENV smac_ver 1
-RUN pip install "protobuf<3.21" git+https://github.com/oxwhirl/smacv2.git
+RUN pip install "protobuf<3.21" git+https://github.com/oxwhirl/smac.git
 ENV SC2PATH /home/pymarluser/pymarl/3rdparty/StarCraftII
 
 # Install MA Gym
