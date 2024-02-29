@@ -61,7 +61,7 @@ for lr in "${lrs[@]}"; do
                     enemies=$(($unit + $offset))
                     # $debug ./run_docker.sh $gpu python3 src/main.py --no-mongo --config="$config" --env-config="$map" with env_args.capability_config.n_units=$unit env_args.capability_config.n_enemies=$enemies group="$group" clip_range=$clipping_range lr_actor=$lr use_wandb=True save_model=True "${args[@]}" &
 
-                    $debug ./run_docker.sh $gpu python3 src/main.py --no-mongo --config="$config" --env-config="sc2" with env_args.map_name="$map" env_args.capability_config.n_units=$unit env_args.capability_config.n_enemies=$enemies group="$group" lr_actor=$lr use_wandb=True save_model=True "${args[@]}" &
+                    $debug ./run_docker.sh $gpu python3 src/main.py --no-mongo --config="$config" --env-config="sc2" with env_args.map_name="$map" group="$group" lr_actor=$lr use_wandb=True save_model=True "${args[@]}" &
 
                     count=$(($count + 1))     
                     if [ $(($count % $threads)) -eq 0 ]; then
