@@ -19,7 +19,7 @@ units=${3:-5}   # MMM2 left out
 clipping_range=0.1
 lr=0.0005
 offset=0
-maps=${8:-sc2_gen_protoss,sc2_gen_zerg,sc2_gen_terran}
+maps=${8:-10m_vs_11m}
 gpus=0
 #processes=1
 args=${5:-}    # ""
@@ -59,9 +59,7 @@ for lr in "${lrs[@]}"; do
                     enemies=$(($unit + $offset))
                     echo "Running Experiment on map: " ${map}
                     echo "Running on GPU " ${gpu}
-                    $debug ./run_singularity.sh $gpu python3 src/main.py --no-mongo --config="$config" --env-config="$map" with env_args.capability_config.n_units=$unit env_args.capability_config.n_enemies=$enemies group="$group" lr_actor=$lr use_wandb=True save_model=True "${args[@]}" &
-#                    $debug ./run_singularity.sh $gpu python3 src/main.py --no-mongo --config="$config" --env-config="$map" with env_args.capability_config.n_units=$unit env_args.capability_config.n_enemies=$enemies group="$group" clip_range=$clipping_range lr_actor=$lr use_wandb=True save_model=True "${args[@]}" &
-
+                    $debug ./run_singularity.sh $gpu python3 src/main.py --no-mongo --config="$config" --env-config="sc2" with env_args.map_name="$map" group="$group" lr_actor=$lr use_wandb=True save_model=True "${args[@]}" &
                     count=$(($count + 1))     
                     if [ $(($count % $processes)) -eq 0 ]; then
                         wait

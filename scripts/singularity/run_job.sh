@@ -3,8 +3,8 @@
 # File used to initiate an SGE queue job
 
 # Job name
-JOB_NAME="JPPO-debugging-ratio"
-TASK_NAME="joint_learning"
+JOB_NAME="MAPPO-SMAC1"
+TASK_NAME="clipping_rnn_central_V"
 
 # Timestamp format: YYYYMMDD-HHMMSS
 TIMESTAMP=$(date +"%Y%m%d-%H%M%S")

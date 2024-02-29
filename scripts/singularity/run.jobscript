@@ -22,7 +22,7 @@ TAG="$2"
 
 # Run the run.sh script
 export WANDB_API_KEY_FILE="/scratch/e14912km/projects/typ/WANDB_API_KEY"
-export SINGULARITY_IMAGE="docker://kusi833/pymarl:smacv2"
+export SINGULARITY_IMAGE="docker://kusi833/pymarl:smac"
 export GROUP="fse-ugpgt01"
 
 #module load libs/cuda
