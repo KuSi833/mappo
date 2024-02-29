@@ -13,4 +13,4 @@ sacred
 jsonpickle==0.9.6
 setuptools
 protobuf<3.21
-git+https://github.com/oxwhirl/smacv2.git
+git+https://github.com/oxwhirl/smac.git
