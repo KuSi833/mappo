@@ -4,7 +4,7 @@
 
 # Job name
 JOB_NAME="IPPO-SMAC1"
-TASK_NAME="ppo_decentral_critic"
+TASK_NAME="clipping_rnn_decentral_critic"
 
 # Timestamp format: YYYYMMDD-HHMMSS
 TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
