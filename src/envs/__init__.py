@@ -7,12 +7,13 @@ from .matrix_game import NormalFormMatrixGame
 from .test import IntegrationTestEnv
 from .multiagentenv import MultiAgentEnv
 from .stag_hunt import StagHunt
-#from .starcraft2 import StarCraft2Env
-from smacv2.env import MultiAgentEnv, StarCraft2Env, StarCraftCapabilityEnvWrapper
-try:
-    from smac.env import StarCraft2CustomEnv
-except Exception as e:
-    print(e)
+from .starcraft2 import StarCraft2Env
+# from smacv2.env import MultiAgentEnv, StarCraft2Env, StarCraftCapabilityEnvWrapper
+from smac.env import StarCraft2CustomEnv
+# try:
+#     from smac.env import StarCraft2CustomEnv
+# except Exception as e:
+#     print(e)
 from .gaussiansqueeze.squeeze import GaussianSqueeze
 from .matrix_game.matrix_game_simple import Matrixgame
 from .matrix_game.matrix_game_random import RandomMatrixgame
@@ -38,8 +39,8 @@ REGISTRY["integration_test"] = partial(env_fn, env=IntegrationTestEnv)
 REGISTRY["box_push"] = partial(env_fn, env=CoopBoxPushing)
 REGISTRY["stag_hunt"] = partial(env_fn, env=StagHunt)
 REGISTRY["sc2"] = partial(env_fn, env=StarCraft2Env)
-REGISTRY["sc2framestack"] = partial(env_fn, env=FrameStackStartCraft2Env)
-REGISTRY["sc2wrapped"] = partial(env_fn, env=StarCraftCapabilityEnvWrapper)
+# REGISTRY["sc2framestack"] = partial(env_fn, env=FrameStackStartCraft2Env)
+# REGISTRY["sc2wrapped"] = partial(env_fn, env=StarCraftCapabilityEnvWrapper)
 try:
     REGISTRY["sc2custom"] = partial(env_fn, env=StarCraft2CustomEnv)
 except Exception as e:
