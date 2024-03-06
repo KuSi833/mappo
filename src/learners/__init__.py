@@ -5,6 +5,7 @@ from .ppo_learner import PPOLearner
 from .centralized_ppo_learner import CentralPPOLearner
 from .trust_region_learner import TrustRegionLearner
 from .joint_learner import JointLearner
+from .updated_joint_learner import UpdatedJointLearner
 
 REGISTRY = {}
 
@@ -15,3 +16,4 @@ REGISTRY["ppo_learner"] = PPOLearner
 REGISTRY["central_ppo_learner"] = CentralPPOLearner
 REGISTRY["trust_region_learner"] = TrustRegionLearner
 REGISTRY["joint_learner"] = JointLearner
+REGISTRY["updated_joint_learner"] = UpdatedJointLearner
