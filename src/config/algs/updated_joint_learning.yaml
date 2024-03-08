@@ -40,4 +40,6 @@ is_value_normalized: False
 obs_agent_id: True
 obs_last_action: False
 
+ratio_divergence_factor: 0.1
+
 name: "central_ppo_rnn"

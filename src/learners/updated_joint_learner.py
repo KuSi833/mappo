@@ -9,6 +9,14 @@ from modules.critics import critic_REGISTRY
 from components.running_mean_std import RunningMeanStd
 
 
+def get_ratio_divergence(ratio_min: float, ratio_max: float) -> float:
+    ratio_divergence = np.abs(ratio_min - ratio_max)
+    if ratio_divergence == 0:
+        return 1
+
+    return 1 / ratio_divergence
+
+
 def compute_logp_entropy(logits, actions, masks):
     masked_logits = th.where(
         masks, logits,
@@ -52,10 +60,15 @@ class UpdatedJointLearner:
                                      lr=args.lr_critic,
                                      eps=args.optim_eps)
 
+        self.ratio_divergence_factor = getattr(self.args,
+                                               "ratio_divergence_factor", 0.1)
+        self.ratio_divergence = 0
+
         self.t = 0
         self.scheduler_actor = LambdaLR(
             optimizer=self.optimiser_actor,
-            lr_lambda=lambda epoch: 1.0 - (self.t / args.t_max),
+            lr_lambda=lambda epoch: 1.0 -
+            (self.ratio_divergence * self.ratio_divergence_factor),
         )
         self.log_stats_t = -self.args.learner_log_interval - 1
 
@@ -383,6 +396,8 @@ class UpdatedJointLearner:
         epsilon_sum = np.sum(np.amax(epsilon, axis=(0, 1)))
         epsilon_max = np.max(epsilon)
 
+        ratio_min = np.min(ratios)
+        ratio_max = np.max(ratios)
         # log stuff
         critic_train_stats["rewards"].append(th.mean(rewards).item())
         critic_train_stats["returns"].append((th.mean(returns)).item())
@@ -391,8 +406,8 @@ class UpdatedJointLearner:
         critic_train_stats["joint_approx_TV"].append(joint_approxtv.item())
         critic_train_stats["epsilon_sum"].append(epsilon_sum)
         critic_train_stats["epsilon_max"].append(epsilon_max)
-        critic_train_stats["ratios_max"].append(np.max(ratios))
-        critic_train_stats["ratios_min"].append(np.min(ratios))
+        critic_train_stats["ratios_max"].append(ratio_max)
+        critic_train_stats["ratios_min"].append(ratio_min)
         critic_train_stats["ratios_mean"].append(np.mean(ratios))
         critic_train_stats["entropy"].append(
             th.mean(th.tensor(entropy_lst)).item())
@@ -403,6 +418,7 @@ class UpdatedJointLearner:
 
         critic_train_stats["lr"].append(
             self.optimiser_actor.param_groups[0]["lr"])
+        self.ratio_divergence = get_ratio_divergence(ratio_min, ratio_max)
         self.scheduler_actor.step()
 
         if t_env - self.log_stats_t >= self.args.learner_log_interval:
