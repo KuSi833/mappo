@@ -10,11 +10,9 @@ from components.running_mean_std import RunningMeanStd
 
 
 def get_ratio_divergence(ratio_min: float, ratio_max: float) -> float:
-    ratio_divergence = np.abs(ratio_min - ratio_max)
-    if ratio_divergence == 0:
-        return 1
+    ratio_divergence = np.clip(np.abs(ratio_min - ratio_max), 0, 2)
 
-    return 1 / ratio_divergence
+    return ratio_divergence / 2
 
 
 def compute_logp_entropy(logits, actions, masks):
