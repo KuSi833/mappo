@@ -65,9 +65,13 @@ class UpdatedJointLearner:
         self.t = 0
         self.scheduler_actor = LambdaLR(
             optimizer=self.optimiser_actor,
-            lr_lambda=lambda epoch: 1.0 -
-            (self.ratio_divergence * self.ratio_divergence_factor),
+            lr_lambda=lambda epoch: 1.0 - (self.t / args.t_max),
         )
+        # self.scheduler_actor = LambdaLR(
+        #     optimizer=self.optimiser_actor,
+        #     lr_lambda=lambda epoch: 1.0 -
+        #     (self.ratio_divergence * self.ratio_divergence_factor),
+        # )
         self.log_stats_t = -self.args.learner_log_interval - 1
 
         self.mini_epochs_actor = getattr(self.args, "mini_epochs_actor", 4)
@@ -416,7 +420,7 @@ class UpdatedJointLearner:
 
         critic_train_stats["lr"].append(
             self.optimiser_actor.param_groups[0]["lr"])
-        self.ratio_divergence = get_ratio_divergence(ratio_min, ratio_max)
+        # self.ratio_divergence = get_ratio_divergence(ratio_min, ratio_max)
         self.scheduler_actor.step()
 
         if t_env - self.log_stats_t >= self.args.learner_log_interval:
